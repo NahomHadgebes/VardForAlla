@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using VardForAlla.Api.DtoBuilder;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
 using VardForAlla.Domain.Entities;
@@ -10,26 +13,20 @@ namespace VardForAlla.Api.Controllers;
 public class RoutineController : ControllerBase
 {
     private readonly IRoutineService _routineService;
+    private readonly RoutineDtoBuilder _dtoBuilder;
 
-    public RoutineController(IRoutineService routineService)
+    public RoutineController(IRoutineService routineService, RoutineDtoBuilder dtoBuilder)
     {
         _routineService = routineService;
+        _dtoBuilder = dtoBuilder;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RoutineListDto>>> GetAll()
     {
         var routines = await _routineService.GetAllAsync();
-
-        var result = routines.Select(r => new RoutineListDto
-        {
-            Id = r.Id,
-            Title = r.Title,
-            Category = r.Category,
-            IsActive = r.IsActive
-        }).ToList();
-
-        return Ok(result);
+        var dto = _dtoBuilder.BuildList(routines);
+        return Ok(dto);
     }
 
     [HttpGet("{id:int}")]
@@ -37,36 +34,13 @@ public class RoutineController : ControllerBase
     {
         var routine = await _routineService.GetByIdAsync(id);
 
-        if (routine == null)
-            return NotFound();
-
-        var dto = new RoutineDetailDto
-        {
-            Id = routine.Id,
-            Title = routine.Title,
-            Category = routine.Category,
-            SimpleDescription = routine.SimpleDescription,
-            OriginalDescription = routine.OriginalDescription,
-            Steps = routine.Steps
-                .OrderBy(s => s.Order)
-                .Select(s => new RoutineStepDto
-                {
-                    Order = s.Order,
-                    SimpleText = s.SimpleText,
-                    OriginalText = s.OriginalText,
-                    IconKey = s.IconKey
-                }).ToList()
-        };
-
+        var dto = _dtoBuilder.BuildDetail(routine);
         return Ok(dto);
     }
 
     [HttpPost]
     public async Task<ActionResult<RoutineDetailDto>> Create([FromBody] RoutineCreateDto createDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var steps = createDto.Steps
             .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey))
             .ToList();
@@ -78,33 +52,14 @@ public class RoutineController : ControllerBase
             createDto.OriginalDescription,
             steps);
 
-        var dto = new RoutineDetailDto
-        {
-            Id = routine.Id,
-            Title = routine.Title,
-            Category = routine.Category,
-            SimpleDescription = routine.SimpleDescription,
-            OriginalDescription = routine.OriginalDescription,
-            Steps = routine.Steps
-                .OrderBy(s => s.Order)
-                .Select(s => new RoutineStepDto
-                {
-                    Order = s.Order,
-                    SimpleText = s.SimpleText,
-                    OriginalText = s.OriginalText,
-                    IconKey = s.IconKey
-                }).ToList()
-        };
-
+        var dto = _dtoBuilder.BuildDetail(routine);
         return CreatedAtAction(nameof(GetById), new { id = routine.Id }, dto);
+
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] RoutineUpdateDto updateDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var success = await _routineService.UpdateRoutineAsync(
             id,
             updateDto.Title,
@@ -113,7 +68,7 @@ public class RoutineController : ControllerBase
             updateDto.OriginalDescription);
 
         if (!success)
-            return NotFound();
+            throw new ArgumentNullException($"{id} not found");
 
         return NoContent();
     }
@@ -124,7 +79,7 @@ public class RoutineController : ControllerBase
         var success = await _routineService.DeleteRoutineAsync(id);
 
         if (!success)
-            return NotFound();
+            throw new ArgumentNullException();
 
         return NoContent();
     }
