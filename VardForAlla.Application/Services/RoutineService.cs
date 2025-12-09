@@ -1,21 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
+using VardForAlla.Application.Factories;
 using VardForAlla.Application.Interfaces;
 using VardForAlla.Domain.Entities;
 using VardForAlla.Domain.Factories;
-
 
 namespace VardForAlla.Application.Services;
 
 public class RoutineService : IRoutineService
 {
     private readonly IRoutineRepository _routineRepository;
-    private readonly RoutineFactory _routineFactory;
+    private readonly IRoutineFactory _routineFactory;
     private readonly ILogger<RoutineService> _logger;
 
-    public RoutineService(IRoutineRepository routineRepository, RoutineFactory routineFactory, ILogger<RoutineService> logger)
+    public RoutineService(IRoutineRepository routineRepository, IRoutineFactory factory, ILogger<RoutineService> logger)
     {
         _routineRepository = routineRepository;
-        _routineFactory = routineFactory;
+        _routineFactory = factory;
         _logger = logger;
     }
 

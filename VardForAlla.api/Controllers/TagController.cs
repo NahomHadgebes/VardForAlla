@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
+using VardForAlla.Api.DtoBuilder;
+
 
 namespace VardForAlla.Api.Controllers;
 
@@ -9,28 +11,24 @@ namespace VardForAlla.Api.Controllers;
 public class TagController : ControllerBase
 {
     private readonly ITagService _tagService;
+    private readonly TagDtoBuilder _dtoBuilder;
 
-    public TagController(ITagService tagService)
+    public TagController(ITagService tagService, TagDtoBuilder dtoBuilder)
     {
         _tagService = tagService;
+        _dtoBuilder = dtoBuilder;
     }
 
-    // GET: api/tag
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TagDto>>> GetAll()
     {
         var tags = await _tagService.GetAllAsync();
 
-        var dtos = tags.Select(t => new TagDto
-        {
-            Id = t.Id,
-            Name = t.Name
-        }).ToList();
+        var dto = _dtoBuilder.BuildList(tags);
 
-        return Ok(dtos);
+        return Ok(dto);
     }
 
-    // GET: api/tag/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<TagDto>> GetById(int id)
     {
@@ -38,39 +36,24 @@ public class TagController : ControllerBase
         if (tag == null)
             return NotFound();
 
-        var dto = new TagDto
-        {
-            Id = tag.Id,
-            Name = tag.Name
-        };
+        var dto = _dtoBuilder.BuildItem(tag);
 
         return Ok(dto);
     }
 
-    // POST: api/tag
     [HttpPost]
     public async Task<ActionResult<TagDto>> Create([FromBody] TagCreateDto createDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var tag = await _tagService.CreateAsync(createDto.Name);
 
-        var dto = new TagDto
-        {
-            Id = tag.Id,
-            Name = tag.Name
-        };
+        var dto = _dtoBuilder.BuildItem(tag);
 
         return CreatedAtAction(nameof(GetById), new { id = tag.Id }, dto);
     }
 
-    // PUT: api/tag/5
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] TagUpdateDto updateDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
 
         var success = await _tagService.UpdateAsync(id, updateDto.Name);
 
@@ -80,7 +63,6 @@ public class TagController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/tag/5
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

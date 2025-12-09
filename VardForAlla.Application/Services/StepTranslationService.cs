@@ -85,9 +85,18 @@ public class StepTranslationService : IStepTranslationService
     {
         _logger.LogInformation("Försöker ta bort översättning med id {Id}.", id);
 
+        var translation = await _translationRepository.GetByIdAsync(id);
+        if (translation is null)
+        {
+            _logger.LogWarning("Översättning med id {Id} hittades inte.", id);
+            return false;
+        }
+
         await _translationRepository.DeleteAsync(id);
+        _logger.LogInformation("Översättning med id {Id} borttagen.", id);
 
         return true;
     }
+
 }
 
