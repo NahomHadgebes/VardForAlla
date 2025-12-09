@@ -32,6 +32,12 @@ public class RoutineStepService : IRoutineStepService
         return await _stepRepository.GetByIdAsync(id);
     }
 
+    public async Task<List<RoutineStep>> GetStepsForRoutineAsync(int routineId)
+    {
+        var steps = await GetByRoutineIdAsync(routineId);
+        return steps.OrderBy(s => s.Order).ToList();
+    }
+
     public async Task<RoutineStep> AddStepAsync(
         int routineId,
         int order,

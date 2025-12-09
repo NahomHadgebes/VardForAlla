@@ -29,7 +29,7 @@ public class ExceptionHandlingMiddleware
 
             var error = new
             {
-                message = "Ett oväntat fel inträffade. Försök igen senare.",
+                message = "Ett oväntat fel inträffade. Försök igen!.",
                 details = ex.Message
             };
 
