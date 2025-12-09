@@ -7,7 +7,8 @@ using VardForAlla.Application.Factories;
 using VardForAlla.Domain.Factories;
 using VardForAlla.Api.Middleware;
 using VardForAlla.Infrastructure.Seeding;
-
+using VardForAlla.Api.DtoBuilder;
+using VardForAlla.Api.DtoBuilders;
 
 namespace VardForAlla.api
 {
@@ -22,12 +23,20 @@ namespace VardForAlla.api
             builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
             builder.Services.AddScoped<IStepTranslationRepository, StepTranslationRepository>();
             builder.Services.AddScoped<ITagRepository, TagRepository>();
-            builder.Services.AddScoped<RoutineFactory, SimpleRoutineFactory>();
+
+            builder.Services.AddScoped<IRoutineFactory, SimpleRoutineFactory>();
+
             builder.Services.AddScoped<IRoutineService, RoutineService>();
             builder.Services.AddScoped<ILanguageService, LanguageService>();
             builder.Services.AddScoped<IStepTranslationService, StepTranslationService>();
             builder.Services.AddScoped<IRoutineStepService, RoutineStepService>();
             builder.Services.AddScoped<ITagService, TagService>();
+
+            builder.Services.AddScoped<RoutineDtoBuilder>();
+            builder.Services.AddScoped<LanguageDtoBuilder>();
+            builder.Services.AddScoped<RoutineStepDtoBuilder>();
+            builder.Services.AddScoped<StepTranslationDtoBuilder>();
+            builder.Services.AddScoped<TagDtoBuilder>();
 
             builder.Services.AddDbContext<VardForAllaDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -35,6 +44,8 @@ namespace VardForAlla.api
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+
 
             var app = builder.Build();
 

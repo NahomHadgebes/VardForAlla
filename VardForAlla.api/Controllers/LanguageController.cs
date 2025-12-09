@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using VardForAlla.Api.DtoBuilders;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
 
@@ -9,43 +11,30 @@ namespace VardForAlla.Api.Controllers;
 public class LanguageController : ControllerBase
 {
     private readonly ILanguageService _languageService;
+    private readonly LanguageDtoBuilder _dtoBuilder;
 
-    public LanguageController(ILanguageService languageService)
+    public LanguageController(ILanguageService languageService, LanguageDtoBuilder dtoBuilder)
     {
         _languageService = languageService;
+        _dtoBuilder = dtoBuilder;
     }
 
-    // GET: api/language
     [HttpGet]
     public async Task<ActionResult<IEnumerable<LanguageDto>>> GetAll()
     {
         var languages = await _languageService.GetAllAsync();
 
-        var result = languages.Select(l => new LanguageDto
-        {
-            Id = l.Id,
-            Code = l.Code,
-            Name = l.Name
-        }).ToList();
+        var dto = _dtoBuilder.BuildList(languages);
 
-        return Ok(result);
+        return (dto);
     }
 
-    // POST: api/language
     [HttpPost]
     public async Task<ActionResult<LanguageDto>> Create([FromBody] LanguageCreateDto createDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        var languages = await _languageService.CreateAsync(createDto.Code, createDto.Name);
 
-        var language = await _languageService.CreateAsync(createDto.Code, createDto.Name);
-
-        var dto = new LanguageDto
-        {
-            Id = language.Id,
-            Code = language.Code,
-            Name = language.Name
-        };
+        var dto = _dtoBuilder.BuildItem(languages);
 
         return CreatedAtAction(nameof(GetAll), null, dto);
     }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using VardForAlla.Api.DtoBuilder;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
 
@@ -9,38 +11,26 @@ namespace VardForAlla.Api.Controllers;
 public class RoutineStepController : ControllerBase
 {
     private readonly IRoutineStepService _stepService;
-    public RoutineStepController(IRoutineStepService stepService)
+    private readonly RoutineStepDtoBuilder _dtoBuilder;
+    public RoutineStepController(IRoutineStepService stepService, RoutineStepDtoBuilder dtoBuilder)
     {
         _stepService = stepService;
+        _dtoBuilder = dtoBuilder;
     }
 
-    // GET: api/routines/{routineId}/steps
     [HttpGet("routines/{routineId:int}/steps")]
     public async Task<ActionResult<IEnumerable<RoutineStepDto>>> GetForRoutine(int routineId)
     {
         var steps = await _stepService.GetByRoutineIdAsync(routineId);
 
-        var dtos = steps
-            .OrderBy(s => s.Order)
-            .Select(s => new RoutineStepDto
-            {
-                Order = s.Order,
-                SimpleText = s.SimpleText,
-                OriginalText = s.OriginalText,
-                IconKey = s.IconKey
-            }).ToList();
+       var dto = _dtoBuilder.BuildList(steps);
 
-        return Ok(dtos);
+        return (dto);
     }
 
-    // POST: api/routines/{routineId}/steps
     [HttpPost("routines/{routineId:int}/steps")]
-    public async Task<ActionResult<RoutineStepDto>> Create(
-        int routineId,
-        [FromBody] RoutineStepCreateDto dto)
+    public async Task<ActionResult<RoutineStepDto>> Create(int routineId,[FromBody] RoutineStepCreateDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
 
         var step = await _stepService.AddStepAsync(
             routineId,
@@ -49,24 +39,14 @@ public class RoutineStepController : ControllerBase
             dto.OriginalText,
             dto.IconKey);
 
-        var result = new RoutineStepDto
-        {
-            Order = step.Order,
-            SimpleText = step.SimpleText,
-            OriginalText = step.OriginalText,
-            IconKey = step.IconKey
-        };
+        var result = _dtoBuilder.BuildItem(step);
 
-        return CreatedAtAction(nameof(GetForRoutine), new { routineId = routineId }, result);
+        return CreatedAtAction(nameof(GetForRoutine), new { routineId }, result);
     }
 
-    // PUT: api/steps/{id}
     [HttpPut("steps/{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] RoutineStepUpdateDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var success = await _stepService.UpdateStepAsync(
             id,
             dto.Order,
@@ -80,7 +60,6 @@ public class RoutineStepController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/steps/{id}
     [HttpDelete("steps/{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
