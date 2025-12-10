@@ -22,10 +22,6 @@ public class TagServiceTests
         _sut = new TagService(_tagRepoMock.Object, logger);
     }
 
-    // ======================================================
-    // GET ALL
-    // ======================================================
-
     [Fact]
     public async Task GetAllAsync_Nar_Inga_Tags_Finns_Ska_Returnera_Tom_Lista()
     {
@@ -71,10 +67,6 @@ public class TagServiceTests
         _tagRepoMock.VerifyNoOtherCalls();
     }
 
-    // ======================================================
-    // CREATE
-    // ======================================================
-
     [Fact]
     public async Task CreateAsync_Ska_Skapa_Ny_Tag_Och_Anropa_AddAsync()
     {
@@ -94,9 +86,6 @@ public class TagServiceTests
         _tagRepoMock.VerifyNoOtherCalls();
     }
 
-    // ======================================================
-    // DELETE
-    // ======================================================
 
     [Fact]
     public async Task DeleteAsync_Nar_Tag_Finns_Ska_Ta_Bort_Och_Returnera_True()
@@ -108,11 +97,8 @@ public class TagServiceTests
             .Setup(r => r.GetByIdAsync(5))
             .ReturnsAsync(tag);
 
-        // OBS: Justera beroende på din repo-signatur:
-        // om du har Task DeleteAsync(Tag tag) -> använd DeleteAsync(tag)
-        // om du har Task DeleteAsync(int id)  -> använd DeleteAsync(5)
         _tagRepoMock
-            .Setup(r => r.DeleteAsync(5))          // ändra till DeleteAsync(tag) vid behov
+            .Setup(r => r.DeleteAsync(5))          
             .Returns(Task.CompletedTask);
 
         // ACT
@@ -122,7 +108,7 @@ public class TagServiceTests
         Assert.True(result);
 
         _tagRepoMock.Verify(r => r.GetByIdAsync(5), Times.Once);
-        _tagRepoMock.Verify(r => r.DeleteAsync(5), Times.Once); // eller DeleteAsync(tag)
+        _tagRepoMock.Verify(r => r.DeleteAsync(5), Times.Once);
         _tagRepoMock.VerifyNoOtherCalls();
     }
 
@@ -141,7 +127,7 @@ public class TagServiceTests
         Assert.False(result);
 
         _tagRepoMock.Verify(r => r.GetByIdAsync(999), Times.Once);
-        _tagRepoMock.Verify(r => r.DeleteAsync(It.IsAny<int>()), Times.Never); // eller It.IsAny<Tag>()
+        _tagRepoMock.Verify(r => r.DeleteAsync(It.IsAny<int>()), Times.Never);
         _tagRepoMock.VerifyNoOtherCalls();
     }
 }

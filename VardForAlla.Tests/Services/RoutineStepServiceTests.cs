@@ -25,10 +25,6 @@ public class RoutineStepServiceTests
         _sut = new RoutineStepService(_stepRepoMock.Object, _routineRepoMock.Object, logger);
     }
 
-    // ======================================================
-    // CREATE
-    // ======================================================
-
     [Fact]
     public async Task AddStepAsync_Ska_Lägga_Till_Steg_Till_Routine_Och_Anropa_AddAsync()
     {
@@ -79,10 +75,6 @@ public class RoutineStepServiceTests
         _stepRepoMock.Verify(s => s.AddAsync(It.IsAny<RoutineStep>()), Times.Never);
     }
 
-    // ======================================================
-    // GET
-    // ======================================================
-
     [Fact]
     public async Task GetStepsForRoutineAsync_Ska_Returnera_Korrekt_Order()
     {
@@ -126,10 +118,6 @@ public class RoutineStepServiceTests
 
         _stepRepoMock.Verify(s => s.GetByRoutineIdAsync(10), Times.Once);
     }
-
-    // ======================================================
-    // UPDATE
-    // ======================================================
 
     [Fact]
     public async Task UpdateStepAsync_Ska_Uppdatera_Falt_Och_Returnera_True()
@@ -186,10 +174,6 @@ public class RoutineStepServiceTests
         _stepRepoMock.Verify(s => s.UpdateAsync(It.IsAny<RoutineStep>()), Times.Never);
     }
 
-    // ======================================================
-    // DELETE
-    // ======================================================
-
     [Fact]
     public async Task DeleteStepAsync_Ska_Ta_Bort_Steg_Och_Returnera_True()
     {
@@ -200,7 +184,6 @@ public class RoutineStepServiceTests
             .Setup(s => s.GetByIdAsync(7))
             .ReturnsAsync(step);
 
-        // OBS: repo.DeleteAsync tar int id, inte objekt
         _stepRepoMock
             .Setup(s => s.DeleteAsync(7))
             .Returns(Task.CompletedTask);
