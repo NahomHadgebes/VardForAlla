@@ -30,10 +30,6 @@ public class StepTranslationServiceTests
             logger);
     }
 
-    // ======================================================
-    // GET
-    // ======================================================
-
     [Fact]
     public async Task GetForStepAsync_Ska_Returnera_Tom_Lista_Nar_Inget_Finns()
     {
@@ -79,10 +75,6 @@ public class StepTranslationServiceTests
 
         _translationRepoMock.Verify(r => r.GetTranslationsForStepAsync(5), Times.Once);
     }
-
-    // ======================================================
-    // ADD
-    // ======================================================
 
     [Fact]
     public async Task AddTranslationAsync_Ska_Skapa_Oversattning_Nar_Steg_Och_Sprak_Finns()
@@ -160,10 +152,6 @@ public class StepTranslationServiceTests
         _translationRepoMock.Verify(r => r.AddAsync(It.IsAny<StepTranslation>()), Times.Never);
     }
 
-    // ======================================================
-    // UPDATE
-    // ======================================================
-
     [Fact]
     public async Task UpdateTranslationAsync_Ska_Uppdatera_Text_Nar_Translation_Finns()
     {
@@ -212,10 +200,6 @@ public class StepTranslationServiceTests
         _translationRepoMock.Verify(r => r.GetByIdAsync(999), Times.Once);
         _translationRepoMock.Verify(r => r.UpdateAsync(It.IsAny<StepTranslation>()), Times.Never);
     }
-
-    // ======================================================
-    // DELETE
-    // ======================================================
 
     [Fact]
     public async Task DeleteTranslationAsync_Ska_Ta_Bort_Oversattning_Nar_Finns()

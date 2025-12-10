@@ -12,7 +12,7 @@ namespace VardForAlla.Tests.Services;
 public class LanguageServiceTests
 {
     private readonly Mock<ILanguageRepository> _languageRepositoryMock;
-    private readonly LanguageService _sut; // System Under Test
+    private readonly LanguageService _sut;
 
     public LanguageServiceTests()
     {
@@ -21,10 +21,6 @@ public class LanguageServiceTests
 
         _sut = new LanguageService(_languageRepositoryMock.Object, logger);
     }
-
-    // --------------------------------------------------------
-    // GET ALL
-    // --------------------------------------------------------
 
     [Fact]
     public async Task GetAllAsync_Nar_Inga_Sprak_Finns_Ska_Returnera_Tom_Lista()
@@ -65,7 +61,6 @@ public class LanguageServiceTests
         Assert.NotNull(result);
         Assert.Equal(2, result.Count);
 
-        // Lite striktare kontroll än bara Contains:
         Assert.Collection(result,
             first =>
             {
@@ -83,10 +78,6 @@ public class LanguageServiceTests
         _languageRepositoryMock.Verify(r => r.GetAllAsync(), Times.Once);
         _languageRepositoryMock.VerifyNoOtherCalls();
     }
-
-    // --------------------------------------------------------
-    // GET BY CODE
-    // --------------------------------------------------------
 
     [Fact]
     public async Task GetByCodeAsync_Nar_Sprak_Finns_Ska_Returnera_Spraket()
@@ -127,10 +118,6 @@ public class LanguageServiceTests
         _languageRepositoryMock.Verify(r => r.GetByCodeAsync("sv"), Times.Once);
         _languageRepositoryMock.VerifyNoOtherCalls();
     }
-
-    // --------------------------------------------------------
-    // CREATE
-    // --------------------------------------------------------
 
     [Fact]
     public async Task CreateAsync_Nar_Kod_Är_Unik_Ska_Skapa_Sprak_Och_Anropa_AddAsync()

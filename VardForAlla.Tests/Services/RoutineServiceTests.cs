@@ -67,10 +67,6 @@ public class RoutineServiceTests
         _routineFactoryMock.VerifyNoOtherCalls();
     }
 
-    // --------------------------------------------------------
-    // CREATE
-    // --------------------------------------------------------
-
     [Fact]
     public async Task CreateRoutineAsync_Ska_Anropa_Factory_Och_Repo()
     {
@@ -115,10 +111,6 @@ public class RoutineServiceTests
         _routineRepoMock.VerifyNoOtherCalls();
     }
 
-    // --------------------------------------------------------
-    // UPDATE
-    // --------------------------------------------------------
-
     [Fact]
     public async Task UpdateRoutineAsync_Nar_Rutin_Finns_Ska_Uppdatera_Och_Returnera_True()
     {
@@ -162,10 +154,6 @@ public class RoutineServiceTests
         _routineRepoMock.Verify(r => r.GetByIdAsync(42), Times.Once);
         _routineRepoMock.VerifyNoOtherCalls();
     }
-
-    // --------------------------------------------------------
-    // DELETE
-    // --------------------------------------------------------
 
     [Fact]
     public async Task DeleteRoutineAsync_Ska_Markera_Som_Inaktiv_Och_Returnera_True()
