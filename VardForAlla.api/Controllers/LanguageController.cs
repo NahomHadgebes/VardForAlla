@@ -26,7 +26,7 @@ public class LanguageController : ControllerBase
 
         var dto = _dtoBuilder.BuildList(languages);
 
-        return (dto);
+        return Ok(dto);
     }
 
     [HttpPost]

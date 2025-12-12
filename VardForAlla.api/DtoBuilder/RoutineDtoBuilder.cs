@@ -20,7 +20,7 @@ public class RoutineDtoBuilder
     public RoutineListDto BuildListItem(Routine routine)
     {
         if (routine == null)
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(routine));
 
         return new RoutineListDto
         {
@@ -34,7 +34,7 @@ public class RoutineDtoBuilder
     public RoutineDetailDto BuildDetail(Routine routine)
     {
         if (routine == null)
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(routine));
 
         return new RoutineDetailDto
         {
@@ -43,7 +43,7 @@ public class RoutineDtoBuilder
             Category = routine.Category,
             SimpleDescription = routine.SimpleDescription,
             OriginalDescription = routine.OriginalDescription,
-            Steps = routine.Steps
+            Steps = (routine.Steps ?? new List<RoutineStep>())
                 .OrderBy(s => s.Order)
                 .Select(s => new RoutineStepDto
                 {

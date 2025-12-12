@@ -32,12 +32,6 @@ public class RoutineStepService : IRoutineStepService
         return await _stepRepository.GetByIdAsync(id);
     }
 
-    public async Task<List<RoutineStep>> GetStepsForRoutineAsync(int routineId)
-    {
-        var steps = await GetByRoutineIdAsync(routineId);
-        return steps.OrderBy(s => s.Order).ToList();
-    }
-
     public async Task<RoutineStep> AddStepAsync(
         int routineId,
         int order,
@@ -46,6 +40,12 @@ public class RoutineStepService : IRoutineStepService
         string? iconKey)
     {
         _logger.LogInformation("Försöker lägga till steg i rutin {RoutineId}.", routineId);
+
+        if (string.IsNullOrWhiteSpace(simpleText))
+            throw new ArgumentException("SimpleText får inte vara tom.", nameof(simpleText));
+
+        if (order < 0)
+            throw new ArgumentException("Order måste vara 0 eller högre.", nameof(order));
 
         var routine = await _routineRepository.GetByIdAsync(routineId);
         if (routine == null)

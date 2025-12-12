@@ -23,9 +23,9 @@ public class RoutineStepController : ControllerBase
     {
         var steps = await _stepService.GetByRoutineIdAsync(routineId);
 
-       var dto = _dtoBuilder.BuildList(steps);
+        var dto = _dtoBuilder.BuildList(steps);
 
-        return (dto);
+        return Ok(dto);
     }
 
     [HttpPost("routines/{routineId:int}/steps")]

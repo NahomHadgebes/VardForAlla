@@ -19,6 +19,8 @@ namespace VardForAlla.Api.DtoBuilder
             return new StepTranslationDto
             {
                 Id = translation.Id,
+                StepId = translation.RoutineStepId,
+                LanguageCode = translation.Language?.Code ?? string.Empty,
                 Text = translation.Text
             };
         }

@@ -76,21 +76,21 @@ public class RoutineStepServiceTests
     }
 
     [Fact]
-    public async Task GetStepsForRoutineAsync_Ska_Returnera_Korrekt_Order()
+    public async Task GetByRoutineIdAsync_Ska_Returnera_Steg_Sorterade_Efter_Order()
     {
-        // ARRANGE – repo returnerar osorterat
+    // ARRANGE     
         var steps = new List<RoutineStep>
-        {
-            new() { Id = 2, RoutineId = 10, Order = 2, SimpleText = "B" },
-            new() { Id = 1, RoutineId = 10, Order = 1, SimpleText = "A" }
-        };
+    {
+        new() { Id = 1, RoutineId = 10, Order = 1, SimpleText = "A" },
+        new() { Id = 2, RoutineId = 10, Order = 2, SimpleText = "B" }
+    };
 
         _stepRepoMock
             .Setup(s => s.GetByRoutineIdAsync(10))
             .ReturnsAsync(steps);
 
         // ACT
-        var result = await _sut.GetStepsForRoutineAsync(10);
+        var result = await _sut.GetByRoutineIdAsync(10);
 
         // ASSERT
         Assert.Equal(2, result.Count);
@@ -110,7 +110,7 @@ public class RoutineStepServiceTests
             .ReturnsAsync(new List<RoutineStep>());
 
         // ACT
-        var result = await _sut.GetStepsForRoutineAsync(10);
+        var result = await _sut.GetByRoutineIdAsync(10);
 
         // ASSERT
         Assert.NotNull(result);
