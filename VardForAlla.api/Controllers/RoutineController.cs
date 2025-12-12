@@ -68,7 +68,7 @@ public class RoutineController : ControllerBase
             updateDto.OriginalDescription);
 
         if (!success)
-            throw new ArgumentNullException($"{id} not found");
+            return NotFound();
 
         return NoContent();
     }
@@ -79,11 +79,9 @@ public class RoutineController : ControllerBase
         var success = await _routineService.DeleteRoutineAsync(id);
 
         if (!success)
-            throw new ArgumentNullException();
+            return NotFound();
 
         return NoContent();
     }
-
-
 }
 

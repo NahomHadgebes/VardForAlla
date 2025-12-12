@@ -25,7 +25,6 @@ public class RoutineStepRepository : IRoutineStepRepository
     {
         return await _context.RoutineSteps
             .Where(s => s.RoutineId == routineId)
-            .OrderBy(s => s.Order)
             .Include(s => s.Translations)
             .ToListAsync();
     }

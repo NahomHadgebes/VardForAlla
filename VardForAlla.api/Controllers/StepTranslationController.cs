@@ -36,11 +36,7 @@ public class StepTranslationController : ControllerBase
     {
         var translation = await _translationService.AddTranslationAsync(stepId, dto.LanguageCode, dto.Text);
 
-        var result = new StepTranslationDto
-        {
-            Id = translation.Id,
-            Text = translation.Text
-        };
+        var result = _dtoBuilder.BuildItem(translation);
 
         return CreatedAtAction(nameof(GetForStep), new { stepId }, result);
     }

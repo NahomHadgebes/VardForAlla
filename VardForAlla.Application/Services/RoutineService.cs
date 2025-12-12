@@ -41,13 +41,22 @@ public class RoutineService : IRoutineService
     }
 
     public async Task<Routine> CreateRoutineAsync(
-        string title,
-        string category,
-        string? simpleDescription,
-        string? originalDescription,
-        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps)
+    string title,
+    string category,
+    string? simpleDescription,
+    string? originalDescription,
+    IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps)
     {
         _logger.LogInformation("Skapar ny rutin med titel {Title}.", title);
+
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException("Titel får inte vara tom.", nameof(title));
+
+        if (string.IsNullOrWhiteSpace(category))
+            throw new ArgumentException("Kategori får inte vara tom.", nameof(category));
+
+        if (!steps.Any())
+            throw new ArgumentException("Minst ett steg krävs.", nameof(steps));
 
         var routine = _routineFactory.CreateRoutine(
             title,
