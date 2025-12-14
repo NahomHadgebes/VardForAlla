@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VardForAlla.Api.DtoBuilder;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
-using VardForAlla.Domain.Entities;
 
 namespace VardForAlla.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RoutineController : ControllerBase
 {
     private readonly IRoutineService _routineService;
@@ -21,10 +21,21 @@ public class RoutineController : ControllerBase
         _dtoBuilder = dtoBuilder;
     }
 
+    private int GetCurrentUserId()
+    {
+        return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    }
+
+    private bool IsAdmin()
+    {
+        return User.IsInRole("Admin");
+    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<RoutineListDto>>> GetAll()
     {
-        var routines = await _routineService.GetAllAsync();
+        var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
+        var routines = await _routineService.GetAllAsync(userId, includeTemplates: true);
         var dto = _dtoBuilder.BuildList(routines);
         return Ok(dto);
     }
@@ -32,7 +43,13 @@ public class RoutineController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<RoutineDetailDto>> GetById(int id)
     {
-        var routine = await _routineService.GetByIdAsync(id);
+        var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
+        var routine = await _routineService.GetByIdAsync(id, userId);
+
+        if (routine == null)
+        {
+            return NotFound();
+        }
 
         var dto = _dtoBuilder.BuildDetail(routine);
         return Ok(dto);
@@ -45,27 +62,34 @@ public class RoutineController : ControllerBase
             .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey))
             .ToList();
 
+        var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
+        var isTemplate = IsAdmin();
+
         var routine = await _routineService.CreateRoutineAsync(
             createDto.Title,
             createDto.Category,
             createDto.SimpleDescription,
             createDto.OriginalDescription,
-            steps);
+            steps,
+            userId,
+            isTemplate);
 
         var dto = _dtoBuilder.BuildDetail(routine);
         return CreatedAtAction(nameof(GetById), new { id = routine.Id }, dto);
-
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] RoutineUpdateDto updateDto)
     {
+        var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
+
         var success = await _routineService.UpdateRoutineAsync(
             id,
             updateDto.Title,
             updateDto.Category,
             updateDto.SimpleDescription,
-            updateDto.OriginalDescription);
+            updateDto.OriginalDescription,
+            userId);
 
         if (!success)
             return NotFound();
@@ -76,7 +100,8 @@ public class RoutineController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var success = await _routineService.DeleteRoutineAsync(id);
+        var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
+        var success = await _routineService.DeleteRoutineAsync(id, userId);
 
         if (!success)
             return NotFound();

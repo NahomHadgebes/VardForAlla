@@ -8,6 +8,10 @@ public class Routine
     public string? SimpleDescription { get; set; }
     public string? OriginalDescription { get; set; }
     public bool IsActive { get; set; } = true;
+    public int? UserId { get; set; }
+    public User? User { get; set; }
+    public bool IsTemplate { get; set; } = false;
+
     public ICollection<RoutineStep> Steps { get; set; } = new List<RoutineStep>();
     public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 }
