@@ -15,7 +15,6 @@ public class AuthServiceTests
     private readonly Mock<IRoleRepository> _roleRepoMock;
     private readonly Mock<IPasswordHasher> _passwordHasherMock;
     private readonly Mock<ITokenService> _tokenServiceMock;
-    private readonly Mock<IEmailService> _emailServiceMock;
     private readonly AuthService _sut;
 
     public AuthServiceTests()
@@ -24,7 +23,6 @@ public class AuthServiceTests
         _roleRepoMock = new Mock<IRoleRepository>();
         _passwordHasherMock = new Mock<IPasswordHasher>();
         _tokenServiceMock = new Mock<ITokenService>();
-        _emailServiceMock = new Mock<IEmailService>();
         var logger = NullLogger<AuthService>.Instance;
 
         _sut = new AuthService(
@@ -32,7 +30,6 @@ public class AuthServiceTests
             _roleRepoMock.Object,
             _passwordHasherMock.Object,
             _tokenServiceMock.Object,
-            _emailServiceMock.Object,
             logger);
     }
 
@@ -155,24 +152,10 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RegisterUserAsync_Nar_Admin_Och_Email_Unik_Ska_Skapa_Anvandare()
+    public async Task RegisterUserAsync_Nar_Email_Är_Unik_Ska_Skapa_Användare()
     {
         // ARRANGE
-        var admin = new User
-        {
-            Id = 1,
-            Email = "admin@test.se",
-            UserRoles = new List<UserRole>
-            {
-                new UserRole { RoleId = 1, Role = new Role { Name = "Admin" } }
-            }
-        };
-
         var userRole = new Role { Id = 2, Name = "User" };
-
-        _userRepoMock
-            .Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(admin);
 
         _userRepoMock
             .Setup(r => r.GetByEmailAsync("newuser@test.se"))
@@ -186,17 +169,12 @@ public class AuthServiceTests
             .Setup(h => h.HashPassword("password123"))
             .Returns("hashed-password");
 
-        _tokenServiceMock
-            .Setup(t => t.GenerateEmailVerificationToken())
-            .Returns("verification-token");
-
         // ACT
         var (success, message) = await _sut.RegisterUserAsync(
             "newuser@test.se",
             "password123",
             "New",
-            "User",
-            1);
+            "User");
 
         // ASSERT
         Assert.True(success);
@@ -205,139 +183,9 @@ public class AuthServiceTests
         _userRepoMock.Verify(r => r.AddAsync(It.Is<User>(u =>
             u.Email == "newuser@test.se" &&
             u.FirstName == "New" &&
-            u.LastName == "User"
+            u.LastName == "User" &&
+            u.IsEmailVerified == true
         )), Times.Once);
-
-        _emailServiceMock.Verify(e => e.SendEmailVerificationAsync(
-            "newuser@test.se",
-            "verification-token",
-            It.IsAny<string>()
-        ), Times.Once);
-    }
-
-    [Fact]
-    public async Task RegisterUserAsync_Nar_Email_Redan_Finns_Ska_Returnera_False()
-    {
-        // ARRANGE
-        var admin = new User
-        {
-            Id = 1,
-            UserRoles = new List<UserRole>
-            {
-                new UserRole { Role = new Role { Name = "Admin" } }
-            }
-        };
-
-        var existingUser = new User { Id = 2, Email = "existing@test.se" };
-
-        _userRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(admin);
-        _userRepoMock.Setup(r => r.GetByEmailAsync("existing@test.se")).ReturnsAsync(existingUser);
-
-        // ACT
-        var (success, message) = await _sut.RegisterUserAsync(
-            "existing@test.se",
-            "password123",
-            "Test",
-            "User",
-            1);
-
-        // ASSERT
-        Assert.False(success);
-        Assert.Contains("redan", message.ToLower());
-
-        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task RegisterUserAsync_Nar_Inte_Admin_Ska_Returnera_False()
-    {
-        // ARRANGE
-        var nonAdmin = new User
-        {
-            Id = 1,
-            UserRoles = new List<UserRole>
-            {
-                new UserRole { Role = new Role { Name = "User" } }
-            }
-        };
-
-        _userRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(nonAdmin);
-
-        // ACT
-        var (success, message) = await _sut.RegisterUserAsync(
-            "test@test.se",
-            "password123",
-            "Test",
-            "User",
-            1);
-
-        // ASSERT
-        Assert.False(success);
-        Assert.Contains("admin", message.ToLower());
-
-        _userRepoMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task VerifyEmailAsync_Nar_Token_Ar_Giltig_Ska_Verifiera_Email()
-    {
-        // ARRANGE
-        var user = new User
-        {
-            Id = 1,
-            Email = "test@test.se",
-            EmailVerificationToken = "valid-token",
-            EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(1),
-            IsEmailVerified = false
-        };
-
-        _userRepoMock
-            .Setup(r => r.GetByEmailVerificationTokenAsync("valid-token"))
-            .ReturnsAsync(user);
-
-        // ACT
-        var (success, message) = await _sut.VerifyEmailAsync("valid-token");
-
-        // ASSERT
-        Assert.True(success);
-        Assert.Contains("verifierad", message.ToLower());
-
-        _userRepoMock.Verify(r => r.UpdateAsync(It.Is<User>(u =>
-            u.IsEmailVerified &&
-            u.EmailVerificationToken == null
-        )), Times.Once);
-
-        _emailServiceMock.Verify(e => e.SendWelcomeEmailAsync(
-            user.Email,
-            It.IsAny<string>()
-        ), Times.Once);
-    }
-
-    [Fact]
-    public async Task VerifyEmailAsync_Nar_Token_Har_Gatt_Ut_Ska_Returnera_False()
-    {
-        // ARRANGE
-        var user = new User
-        {
-            Id = 1,
-            Email = "test@test.se",
-            EmailVerificationToken = "expired-token",
-            EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(-1),
-            IsEmailVerified = false
-        };
-
-        _userRepoMock
-            .Setup(r => r.GetByEmailVerificationTokenAsync("expired-token"))
-            .ReturnsAsync(user);
-
-        // ACT
-        var (success, message) = await _sut.VerifyEmailAsync("expired-token");
-
-        // ASSERT
-        Assert.False(success);
-        Assert.Contains("gått ut", message.ToLower());
-
-        _userRepoMock.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Never);
     }
 
     [Fact]

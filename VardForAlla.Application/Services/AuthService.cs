@@ -10,7 +10,6 @@ public class AuthService : IAuthService
     private readonly IRoleRepository _roleRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ITokenService _tokenService;
-    private readonly IEmailService _emailService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -18,14 +17,12 @@ public class AuthService : IAuthService
         IRoleRepository roleRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
-        IEmailService emailService,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
-        _emailService = emailService;
         _logger = logger;
     }
 
@@ -43,12 +40,6 @@ public class AuthService : IAuthService
         if (!user.IsActive)
         {
             _logger.LogWarning("Användare {Email} är inaktiv", email);
-            return (false, string.Empty, null);
-        }
-
-        if (!user.IsEmailVerified)
-        {
-            _logger.LogWarning("Email för {Email} är inte verifierad", email);
             return (false, string.Empty, null);
         }
 
@@ -72,23 +63,9 @@ public class AuthService : IAuthService
         string email,
         string password,
         string firstName,
-        string lastName,
-        int adminId)
+        string lastName)
     {
         _logger.LogInformation("Registrerar ny användare {Email}", email);
-
-        var admin = await _userRepository.GetByIdAsync(adminId);
-        if (admin == null)
-        {
-            return (false, "Admin hittades inte");
-        }
-
-        var adminRoles = await GetUserRolesAsync(adminId);
-        if (!adminRoles.Contains("Admin"))
-        {
-            _logger.LogWarning("Användare {AdminId} försökte registrera användare utan admin-behörighet", adminId);
-            return (false, "Endast admin kan registrera användare");
-        }
 
         var existingUser = await _userRepository.GetByEmailAsync(email);
         if (existingUser != null)
@@ -102,14 +79,13 @@ public class AuthService : IAuthService
             PasswordHash = _passwordHasher.HashPassword(password),
             FirstName = firstName,
             LastName = lastName,
-            IsEmailVerified = false,
-            EmailVerificationToken = _tokenService.GenerateEmailVerificationToken(),
-            EmailVerificationTokenExpiry = DateTime.UtcNow.AddDays(7),
+            IsEmailVerified = true, // Automatiskt verifierad
             IsActive = true
         };
 
         await _userRepository.AddAsync(user);
 
+        // Tilldela User-roll
         var userRole = await _roleRepository.GetByNameAsync("User");
         if (userRole != null)
         {
@@ -121,39 +97,8 @@ public class AuthService : IAuthService
             await _userRepository.UpdateAsync(user);
         }
 
-        await _emailService.SendEmailVerificationAsync(
-            user.Email,
-            user.EmailVerificationToken!,
-            $"{user.FirstName} {user.LastName}");
-
         _logger.LogInformation("Användare {Email} registrerad", email);
-        return (true, "Användare registrerad. Verifieringsmail skickat.");
-    }
-
-    public async Task<(bool Success, string Message)> VerifyEmailAsync(string token)
-    {
-        _logger.LogInformation("Verifierar email med token");
-
-        var user = await _userRepository.GetByEmailVerificationTokenAsync(token);
-        if (user == null)
-        {
-            return (false, "Ogiltig verifieringstoken");
-        }
-
-        if (user.EmailVerificationTokenExpiry < DateTime.UtcNow)
-        {
-            return (false, "Verifieringstoken har gått ut");
-        }
-
-        user.IsEmailVerified = true;
-        user.EmailVerificationToken = null;
-        user.EmailVerificationTokenExpiry = null;
-
-        await _userRepository.UpdateAsync(user);
-        await _emailService.SendWelcomeEmailAsync(user.Email, $"{user.FirstName} {user.LastName}");
-
-        _logger.LogInformation("Email verifierad för {Email}", user.Email);
-        return (true, "Email verifierad framgångsrikt");
+        return (true, "Användare registrerad framgångsrikt");
     }
 
     public async Task<(bool Success, string Message)> RequestPasswordResetAsync(string email)
@@ -170,10 +115,9 @@ public class AuthService : IAuthService
         user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
 
         await _userRepository.UpdateAsync(user);
-        await _emailService.SendPasswordResetAsync(
-            user.Email,
-            user.PasswordResetToken,
-            $"{user.FirstName} {user.LastName}");
+
+        _logger.LogInformation("Återställningstoken genererad för {Email}: {Token}",
+            email, user.PasswordResetToken);
 
         return (true, "Om email finns i systemet har ett återställningsmail skickats");
     }
