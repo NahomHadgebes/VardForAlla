@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VardForAlla.Api.Dtos;
-
 public class StepTranslationCreateDto
 {
     [Required]
@@ -9,6 +7,5 @@ public class StepTranslationCreateDto
 
     [Required]
     [MaxLength(1000)]
-    public string Text { get; set; } = string.Empty;
+    public string TranslatedText { get; set; } = string.Empty;
 }
-

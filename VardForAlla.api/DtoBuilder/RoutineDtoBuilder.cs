@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Routing;
-using System.Collections.Generic;
-using System.Linq;
-using VardForAlla.Api.Dtos;
+﻿using VardForAlla.Api.Dtos;
 using VardForAlla.Domain.Entities;
+using System.Linq;
 
 namespace VardForAlla.Api.DtoBuilder;
 
 public class RoutineDtoBuilder
 {
     public List<RoutineListDto> BuildList(IEnumerable<Routine> routines)
-    { 
+    {
         return routines
             .OrderBy(r => r.Category)
             .ThenBy(r => r.Title)
@@ -27,7 +25,12 @@ public class RoutineDtoBuilder
             Id = routine.Id,
             Title = routine.Title,
             Category = routine.Category,
-            IsActive = routine.IsActive
+            Description = routine.SimpleDescription,
+            IsActive = routine.IsActive,
+            IsTemplate = routine.IsTemplate,
+            StepCount = routine.Steps?.Count ?? 0,  // KRITISKT: Räkna steps
+            Tags = routine.Tags?.Select(t => t.Name).ToList() ?? new List<string>(),
+            UpdatedAt = DateTime.UtcNow
         };
     }
 
@@ -41,19 +44,30 @@ public class RoutineDtoBuilder
             Id = routine.Id,
             Title = routine.Title,
             Category = routine.Category,
-            SimpleDescription = routine.SimpleDescription,
-            OriginalDescription = routine.OriginalDescription,
+            Description = routine.SimpleDescription,
+            IsTemplate = routine.IsTemplate,
+            Tags = routine.Tags?.Select(t => t.Name).ToList() ?? new List<string>(),
             Steps = (routine.Steps ?? new List<RoutineStep>())
                 .OrderBy(s => s.Order)
-                .Select(s => new RoutineStepDto
+                .Select(s => new RoutineStepDetailDto
                 {
+                    Id = s.Id,
                     Order = s.Order,
                     SimpleText = s.SimpleText,
-                    OriginalText = s.OriginalText,
-                    IconKey = s.IconKey
+                    OriginalText = s.OriginalText ?? "",
+                    IconKey = s.IconKey ?? "default",
+                    Translations = (s.Translations ?? new List<StepTranslation>())
+                        .Select(t => new StepTranslationDto
+                        {
+                            Id = t.Id,
+                            LanguageCode = t.Language?.Code ?? "",
+                            TranslatedText = t.Text
+                        })
+                        .ToList()
                 })
-                .ToList()
+                .ToList(),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
     }
 }
-

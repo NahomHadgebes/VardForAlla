@@ -32,10 +32,27 @@ public class RoutineController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<RoutineListDto>>> GetAll()
+    public async Task<ActionResult<IEnumerable<RoutineListDto>>> GetAll(
+        [FromQuery] string? search = null,
+        [FromQuery] string? category = null)
     {
         var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
         var routines = await _routineService.GetAllAsync(userId, includeTemplates: true);
+
+        // Filtrera på sökning och kategori
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            routines = routines.Where(r => 
+                r.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (r.SimpleDescription != null && r.SimpleDescription.Contains(search, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            routines = routines.Where(r => r.Category.Equals(category, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
         var dto = _dtoBuilder.BuildList(routines);
         return Ok(dto);
     }
@@ -58,18 +75,24 @@ public class RoutineController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RoutineDetailDto>> Create([FromBody] RoutineCreateDto createDto)
     {
+        // Säkerställ att steps är mappade korrekt
         var steps = createDto.Steps
-            .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey))
+            .Select(s => (
+                s.Order, 
+                s.SimpleText, 
+                s.OriginalText, 
+                s.IconKey ?? "default"
+            ))
             .ToList();
 
         var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
-        var isTemplate = IsAdmin();
+        var isTemplate = IsAdmin() && (createDto.IsTemplate ?? false);
 
         var routine = await _routineService.CreateRoutineAsync(
             createDto.Title,
             createDto.Category,
-            createDto.SimpleDescription,
-            createDto.OriginalDescription,
+            createDto.Description,
+            null, // OriginalDescription - används ej i frontend
             steps,
             userId,
             isTemplate);
@@ -88,7 +111,7 @@ public class RoutineController : ControllerBase
             updateDto.Title,
             updateDto.Category,
             updateDto.SimpleDescription,
-            updateDto.OriginalDescription,
+            null, // OriginalDescription
             userId);
 
         if (!success)
@@ -109,4 +132,3 @@ public class RoutineController : ControllerBase
         return NoContent();
     }
 }
-

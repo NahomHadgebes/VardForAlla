@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using VardForAlla.Application.Interfaces;
 using VardForAlla.Domain.Entities;
 using VardForAlla.Infrastructure.Data;
@@ -18,16 +19,21 @@ public class RoutineRepository : IRoutineRepository
     {
         return await _context.Routines
             .Include(r => r.Steps)
+                .ThenInclude(s => s.Translations)
+                    .ThenInclude(t => t.Language)
             .Include(r => r.Tags)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
+
     public async Task<List<Routine>> GetAllAsync()
     {
         return await _context.Routines
             .Where(r => r.IsActive)
+            .Include(r => r.Steps) 
             .Include(r => r.Tags)
             .ToListAsync();
     }
+
     public async Task AddAsync(Routine routine)
     {
         _context.Routines.Add(routine);

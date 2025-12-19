@@ -34,7 +34,7 @@ public class StepTranslationController : ControllerBase
     [HttpPost("steps/{stepId:int}/translations")]
     public async Task<ActionResult<StepTranslationDto>> Create(int stepId, [FromBody] StepTranslationCreateDto dto)
     {
-        var translation = await _translationService.AddTranslationAsync(stepId, dto.LanguageCode, dto.Text);
+        var translation = await _translationService.AddTranslationAsync(stepId, dto.LanguageCode, dto.TranslatedText);
 
         var result = _dtoBuilder.BuildItem(translation);
 
