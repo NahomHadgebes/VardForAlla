@@ -1,6 +1,6 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using VardForAlla.Api.DtoBuilder;
 using VardForAlla.Api.Dtos;
 using VardForAlla.Application.Interfaces;
@@ -77,12 +77,7 @@ public class RoutineController : ControllerBase
     {
         // Säkerställ att steps är mappade korrekt
         var steps = createDto.Steps
-            .Select(s => (
-                s.Order, 
-                s.SimpleText, 
-                s.OriginalText, 
-                s.IconKey ?? "default"
-            ))
+            .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey))
             .ToList();
 
         var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
