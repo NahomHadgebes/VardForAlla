@@ -41,37 +41,19 @@ public class AuthController : ControllerBase
                 Email = user.Email,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
-                IsEmailVerified = user.IsEmailVerified,
                 Roles = roles
             }
         });
     }
 
     [HttpPost("register")]
-    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> Register([FromBody] RegisterUserDto registerDto)
     {
-        var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
         var (success, message) = await _authService.RegisterUserAsync(
             registerDto.Email,
             registerDto.Password,
             registerDto.FirstName,
-            registerDto.LastName,
-            adminId);
-
-        if (!success)
-        {
-            return BadRequest(new { message });
-        }
-
-        return Ok(new { message });
-    }
-
-    [HttpPost("verify-email")]
-    public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailDto verifyDto)
-    {
-        var (success, message) = await _authService.VerifyEmailAsync(verifyDto.Token);
+            registerDto.LastName);
 
         if (!success)
         {
@@ -123,7 +105,6 @@ public class AuthController : ControllerBase
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            IsEmailVerified = user.IsEmailVerified,
             Roles = roles
         });
     }

@@ -4,18 +4,20 @@ namespace VardForAlla.api.Dtos
 {
     public class RegisterUserDto
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email är obligatorisk")]
+        [EmailAddress(ErrorMessage = "Ogiltig email-adress")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
-        [MinLength(8)]
+        [Required(ErrorMessage = "Lösenord är obligatoriskt")]
+        [MinLength(8, ErrorMessage = "Lösenord måste vara minst 8 tecken")]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Förnamn är obligatoriskt")]
+        [MaxLength(100)]
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Efternamn är obligatoriskt")]
+        [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
     }
 }

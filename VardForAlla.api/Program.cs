@@ -45,7 +45,6 @@ namespace VardForAlla.api
             // Infrastructure Services
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<ITokenService, TokenService>();
-            builder.Services.AddScoped<IEmailService, EmailService>();
 
             // DTO Builders
             builder.Services.AddScoped<RoutineDtoBuilder>();
@@ -81,9 +80,19 @@ namespace VardForAlla.api
             });
 
             builder.Services.AddAuthorization();
-
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin() 
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+            });
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -99,19 +108,19 @@ namespace VardForAlla.api
                 });
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
                 {
+                    Reference = new OpenApiReference
                     {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
                     }
-                });
+                },
+                Array.Empty<string>()
+            }
+        });
             });
 
             var app = builder.Build();
@@ -132,6 +141,8 @@ namespace VardForAlla.api
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("AllowAll");
 
             app.UseAuthentication();
             app.UseAuthorization();
