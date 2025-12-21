@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRoutines } from '../hooks/useRoutines';
 import RoutineCard from '../components/RoutineCard';
+import { RoutineListDto, PaginatedResult } from '../types';
 
 const CATEGORIES = [
   'Undersökning',
@@ -26,7 +27,20 @@ const Explorer: React.FC = () => {
     setPage(1);
   }, [search, category]);
 
-  const totalPages = data ? Math.ceil(data.totalCount / pageSize) : 0;
+  // Typ-säker hantering av union-typen med explicit returtyp
+  const items = useMemo((): RoutineListDto[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    return (data as PaginatedResult<RoutineListDto>).items || [];
+  }, [data]);
+
+  const totalCount = useMemo(() => {
+    if (!data) return 0;
+    if (Array.isArray(data)) return data.length;
+    return (data as PaginatedResult<RoutineListDto>).totalCount || 0;
+  }, [data]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -43,7 +57,7 @@ const Explorer: React.FC = () => {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow shadow-sm"
+              className="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-50 focus:border-transparent outline-none transition-shadow shadow-sm"
             >
               <option value="">Alla kategorier</option>
               {CATEGORIES.map(cat => (
@@ -63,7 +77,7 @@ const Explorer: React.FC = () => {
               </span>
               <input
                 type="text"
-                className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow shadow-sm"
+                className="block w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm placeholder-slate-400 focus:ring-2 focus:ring-blue-50 focus:border-transparent outline-none transition-shadow shadow-sm"
                 placeholder="Sök på titel eller innehåll..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -93,7 +107,7 @@ const Explorer: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : data?.items.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="py-20 text-center bg-white rounded-2xl border border-dashed border-slate-300">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 text-slate-300 mb-4">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,8 +128,8 @@ const Explorer: React.FC = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.items.map((routine) => (
-              <RoutineCard key={routine.id} routine={routine} />
+            {items.map((routine) => (
+              <RoutineCard key={routine.id} routine={routine as any} />
             ))}
           </div>
 
@@ -150,7 +164,7 @@ const Explorer: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              <p className="text-xs text-slate-400 font-medium">Visar {data.items.length} av totalt {data.totalCount} rutiner</p>
+              <p className="text-xs text-slate-400 font-medium">Visar {items.length} av totalt {totalCount} rutiner</p>
             </div>
           )}
         </>

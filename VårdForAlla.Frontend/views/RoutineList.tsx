@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRoutines, useCategories } from '../hooks/useRoutines';
 import RoutineCard from '../components/RoutineCard';
@@ -8,17 +7,9 @@ const RoutineList: React.FC = () => {
   const [category, setCategory] = useState('');
 
   const { data: categories } = useCategories();
-  // Fetch routines (both templates and regular routines)
-  const { data, isLoading, isError } = useRoutines();
-
-  // Handle both flat array or object response from useRoutines hook
-  const routinesList = Array.isArray(data) ? data : (data?.items || []);
-
-  const filteredData = routinesList.filter((r: any) => {
-    const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === '' || r.category === category;
-    return matchesSearch && matchesCategory;
-  });
+  
+  // FIXAT: Skicka sök/filter-parametrar direkt till API
+  const { data: routines, isLoading, isError } = useRoutines(search, category);
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -77,14 +68,14 @@ const RoutineList: React.FC = () => {
           <p className="text-red-900 font-black text-lg">Kunde inte hämta rutinerna.</p>
           <button onClick={() => window.location.reload()} className="px-8 py-3 bg-red-600 text-white font-black rounded-xl">Försök igen</button>
         </div>
-      ) : filteredData.length === 0 ? (
+      ) : !routines || routines.length === 0 ? (
         <div className="text-center py-32 bg-white rounded-[4rem] border-4 border-dashed border-slate-100">
           <p className="text-slate-400 font-black text-xl italic">Inga rutiner matchar din sökning.</p>
           <button onClick={() => { setSearch(''); setCategory(''); }} className="mt-4 text-blue-600 font-black hover:underline">Rensa alla filter</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredData.map((routine: any) => (
+          {routines.map((routine) => (
             <RoutineCard key={routine.id} routine={routine} />
           ))}
         </div>

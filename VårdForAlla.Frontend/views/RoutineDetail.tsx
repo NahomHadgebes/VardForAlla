@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRoutine, useDeleteRoutine } from '../hooks/useRoutines';
@@ -12,10 +11,11 @@ const RoutineDetail: React.FC = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
   
-  // Konvertera sträng-ID från URL till number för backend-kompatibilitet
   const numericId = id ? parseInt(id, 10) : undefined;
   const { data: routine, isLoading, error } = useRoutine(numericId);
   const deleteMutation = useDeleteRoutine();
+  
+  // FIXAT: Översättningsfunktionalitet från backend
   const [selectedLanguage, setSelectedLanguage] = useState('sv');
 
   const isAdmin = user?.role === 'Admin';
@@ -30,6 +30,20 @@ const RoutineDetail: React.FC = () => {
         showToast('Kunde inte radera rutinen.', 'error');
       }
     }
+  };
+
+  // FIXAT: Funktion för att hämta översatt text från backend-data
+  const getTranslatedText = (step: any, languageCode: string): string => {
+    if (languageCode === 'sv') {
+      return step.simpleText;
+    }
+    
+    // Matcha språkkoder från backend: en, ar, so
+    const translation = step.translations?.find((t: any) => 
+      t.languageCode.toLowerCase() === languageCode.toLowerCase()
+    );
+    
+    return translation?.translatedText || step.simpleText;
   };
 
   if (isLoading) return (
@@ -87,7 +101,6 @@ const RoutineDetail: React.FC = () => {
       </div>
 
       <div className="bg-white p-10 md:p-14 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
-        {/* Visual Decoration */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-bl-full -mr-20 -mt-20 opacity-80 pointer-events-none"></div>
 
         <header className="relative z-10 space-y-6 mb-14 border-b border-slate-100 pb-12">
@@ -102,11 +115,13 @@ const RoutineDetail: React.FC = () => {
             )}
           </div>
           <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-tight">{routine.title}</h1>
-          <p className="text-xl text-slate-500 leading-relaxed font-bold max-w-3xl italic">{routine.description ? routine.description : ""}</p>
+          <p className="text-xl text-slate-500 leading-relaxed font-bold max-w-3xl italic">
+            {routine.description || "Ingen beskrivning tillgänglig"}
+          </p>
           
           <div className="flex flex-wrap items-center gap-3 pt-4">
             <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest mr-4">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               Uppdaterad: {new Date(routine.updatedAt).toLocaleDateString('sv-SE')}
             </div>
             {(routine.tags || []).map(tag => (
@@ -130,52 +145,55 @@ const RoutineDetail: React.FC = () => {
                 onChange={(e) => setSelectedLanguage(e.target.value)}
               >
                 <option value="sv">Svenska (Huvudspråk)</option>
-                <option value="en">English (English)</option>
-                <option value="ar">العربية (Arabic)</option>
-                <option value="so">Af-Soomaali (Somali)</option>
+                <option value="en">English (Engelska)</option>
+                <option value="ar">العربية (Arabiska)</option>
+                <option value="so">Af-Soomaali (Somaliska)</option>
               </select>
             </div>
           </div>
 
           <div className="grid gap-8">
-            {routine.steps.sort((a,b) => a.order - b.order).map((step, index) => (
-              <div key={step.id} className="flex flex-col md:flex-row gap-8 p-10 rounded-[3rem] bg-white border-2 border-slate-50 hover:border-slate-200 hover:shadow-2xl hover:shadow-slate-200/30 transition-all duration-500 group relative">
-                <div className="flex-shrink-0 flex md:flex-col items-center gap-6">
-                  {/* Step Order with Icon Indicator */}
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-2xl shadow-xl group-hover:scale-110 transition-transform duration-300">
-                      {index + 1}
+            {routine.steps && routine.steps.length > 0 ? (
+              routine.steps.sort((a, b) => a.order - b.order).map((step, index) => (
+                <div key={step.id} className="flex flex-col md:flex-row gap-8 p-10 rounded-[3rem] bg-white border-2 border-slate-50 hover:border-slate-200 hover:shadow-2xl hover:shadow-slate-200/30 transition-all duration-500 group relative">
+                  <div className="flex-shrink-0 flex md:flex-col items-center gap-6">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-2xl shadow-xl group-hover:scale-110 transition-transform duration-300">
+                        {index + 1}
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-blue-600 text-white border-2 border-white flex items-center justify-center shadow-md">
+                        <Icon iconKey={step.iconKey || 'default'} className="w-4 h-4" />
+                      </div>
                     </div>
-                    <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-blue-600 text-white border-2 border-white flex items-center justify-center shadow-md">
-                      <Icon iconKey={step.iconKey} className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex-1 space-y-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                       <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Patientinstruktion</span>
-                       {selectedLanguage !== 'sv' && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">• Översatt</span>}
-                    </div>
-                    <p className="text-2xl font-black text-slate-900 leading-snug tracking-tight">
-                      {selectedLanguage === 'sv' 
-                        ? step.simpleText 
-                        : step.translations.find(t => t.languageCode === selectedLanguage)?.translatedText || 
-                          <span className="text-slate-300 italic font-medium">Översättning saknas för detta steg.</span>
-                      }
-                    </p>
                   </div>
                   
-                  <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Medicinsk Term:</span>
-                    <p className="text-sm font-black text-slate-700 italic bg-slate-50 inline-block px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
-                      {step.originalText}
-                    </p>
+                  <div className="flex-1 space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                         <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Patientinstruktion</span>
+                         {selectedLanguage !== 'sv' && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">• Översatt</span>}
+                      </div>
+                      <p className="text-2xl font-black text-slate-900 leading-snug tracking-tight">
+                        {getTranslatedText(step, selectedLanguage) || 
+                          <span className="text-slate-300 italic font-medium">Översättning saknas för detta steg.</span>
+                        }
+                      </p>
+                    </div>
+                    
+                    <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Medicinsk Term:</span>
+                      <p className="text-sm font-black text-slate-700 italic bg-slate-50 inline-block px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
+                        {step.originalText || step.simpleText}
+                      </p>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-10 bg-slate-50 rounded-3xl">
+                <p className="text-slate-400 font-medium">Inga steg definierade för denna rutin.</p>
               </div>
-            ))}
+            )}
           </div>
         </section>
 

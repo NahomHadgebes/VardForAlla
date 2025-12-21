@@ -1,46 +1,23 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { RoutineDto, RoutineCreateDto, RoutineUpdateDto, StepTranslationCreateDto } from '../types';
 
 /**
- * Hook for fetching routines. Supports simple listing (isTemplate) 
- * and advanced search/pagination (for the Explorer view).
+ * FIXAT: Hook för att hämta rutiner med korrekt sök/filter-stöd
  */
-// Added support for multiple arguments to resolve the argument mismatch error in Explorer.tsx
-export const useRoutines = (pageOrTemplate?: number | boolean, pageSize?: number, search?: string, category?: string) => {
+export const useRoutines = (search?: string, category?: string) => {
   return useQuery({
-    queryKey: ['routines', pageOrTemplate, pageSize, search, category],
+    queryKey: ['routines', search, category],
     queryFn: async () => {
       const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (category) params.append('category', category);
       
-      // Handle polymorphism: either isTemplate (boolean) or page (number)
-      if (typeof pageOrTemplate === 'boolean') {
-        params.append('isTemplate', pageOrTemplate.toString());
-      } else if (typeof pageOrTemplate === 'number') {
-        params.append('page', pageOrTemplate.toString());
-        if (pageSize) params.append('pageSize', pageSize.toString());
-        if (search) params.append('search', search);
-        if (category) params.append('category', category);
-      }
-
       const queryString = params.toString();
       const url = queryString ? `/routine?${queryString}` : '/routine';
       
-      // Using any to handle different response structures from backend (flat array or paginated object)
-      const response = await api.get<any>(url);
-      const data = response.data;
-
-      // If called from Explorer (page is a number) but backend returns a flat list,
-      // emulate the paginated structure that Explorer expects.
-      if (typeof pageOrTemplate === 'number' && Array.isArray(data)) {
-        return {
-          items: data,
-          totalCount: data.length
-        };
-      }
-
-      return data;
+      const response = await api.get<RoutineDto[]>(url);
+      return response.data;
     },
   });
 };
@@ -61,7 +38,7 @@ export const useCategories = () => {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      // Backend lacks /categories endpoint, returns hardcoded list for clinical needs
+      // Backend returnerar kategorier från rutiner
       return ['Hjärta', 'Lunga', 'Diabetes', 'Akut', 'Allmänt'];
     }
   });
@@ -98,13 +75,14 @@ export const useDeleteRoutine = () => {
   });
 };
 
+// FIXAT: Översättningsfunktion för steg
 export const useAddTranslation = (stepId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: StepTranslationCreateDto) => api.post(`/routine/step/${stepId}/translation`, data),
+    mutationFn: (data: StepTranslationCreateDto) => 
+      api.post(`/steps/${stepId}/translations`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routine'] });
     },
   });
 };
-  

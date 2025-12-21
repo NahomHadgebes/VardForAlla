@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,6 +11,7 @@ import RoutineDetail from './views/RoutineDetail';
 import Management from './views/Management';
 import Profile from './views/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
+import ScrollToTop from './components/ScrollToTop';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +28,8 @@ const App: React.FC = () => {
       <ToastProvider>
         <AuthProvider>
           <HashRouter>
+            <ScrollToTop />
+            
             <Routes>
               <Route path="/login" element={<Login />} />
               
@@ -37,14 +39,14 @@ const App: React.FC = () => {
                 <Route path="routine/:id" element={<RoutineDetail />} />
                 <Route path="profile" element={<Profile />} />
                 
-                {/* Administrativa rutter */}
+                {/* Administrativa rutter - Nu tillgängliga utan roll-krav */}
                 <Route path="manage" element={
-                  <ProtectedRoute requiredRole="Admin">
+                  <ProtectedRoute>
                     <Management />
                   </ProtectedRoute>
                 } />
                 <Route path="manage/:id" element={
-                  <ProtectedRoute requiredRole="Admin">
+                  <ProtectedRoute>
                     <Management />
                   </ProtectedRoute>
                 } />

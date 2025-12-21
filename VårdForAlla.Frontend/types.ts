@@ -79,6 +79,11 @@ export interface RoutineListDto {
   isTemplate?: boolean;
 }
 
+export interface PaginatedResult<T> {
+  items: T[];
+  totalCount: number;
+}
+
 export interface RoutineCreateDto {
   title: string;
   description?: string;

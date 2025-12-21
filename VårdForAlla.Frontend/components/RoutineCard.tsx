@@ -1,14 +1,18 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { RoutineDto } from '../types';
+import { RoutineListDto } from '../types';
 import Icon from './Icon';
 
 interface RoutineCardProps {
-  routine: RoutineDto;
+  routine: RoutineListDto;
 }
 
 const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
+  // Säkerhetskontroll för stepCount med fallback
+  const stepCount = routine.stepCount ?? 0;
+  const tags = routine.tags ?? [];
+  const description = routine.description ?? "Ingen sammanfattning tillgänglig för denna rutin.";
+
   return (
     <Link
       to={`/routine/${routine.id}`}
@@ -34,18 +38,18 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
       </div>
       
       <p className="relative z-10 text-sm text-slate-500 font-bold line-clamp-2 mb-8 flex-grow leading-relaxed italic">
-        {routine.description ? routine.description : "Ingen sammanfattning tillgänglig för denna rutin."}
+        {description}
       </p>
       
       <div className="relative z-10 flex flex-wrap gap-2 mb-8">
-        {(routine.tags || []).slice(0, 3).map((tag) => (
+        {tags.slice(0, 3).map((tag) => (
           <span key={tag} className="text-[9px] font-black bg-slate-100 text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider border border-slate-200">
             #{tag}
           </span>
         ))}
-        {(routine.tags || []).length > 3 && (
+        {tags.length > 3 && (
           <span className="text-[9px] font-black text-slate-400 px-1 py-1 uppercase">
-            +{(routine.tags || []).length - 3} mer
+            +{tags.length - 3} mer
           </span>
         )}
       </div>
@@ -53,11 +57,13 @@ const RoutineCard: React.FC<RoutineCardProps> = ({ routine }) => {
       <div className="relative z-10 mt-auto pt-6 border-t-2 border-slate-50 flex items-center justify-between text-[11px] text-slate-900 font-black uppercase tracking-widest">
         <div className="flex items-center gap-2">
            <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
-              <Icon iconKey={routine.steps && routine.steps[0]?.iconKey || 'default'} className="w-3 h-3 text-slate-900" />
+              <Icon iconKey="default" className="w-3 h-3 text-slate-900" />
            </div>
-           <span>{routine.steps ? routine.steps.length : 0} Moment</span>
+           <span>{stepCount} Moment</span>
         </div>
-        <span className="text-slate-400">{routine.updatedAt ? new Date(routine.updatedAt).toLocaleDateString('sv-SE') : ''}</span>
+        <span className="text-slate-400">
+          {routine.updatedAt ? new Date(routine.updatedAt).toLocaleDateString('sv-SE') : ''}
+        </span>
       </div>
     </Link>
   );
