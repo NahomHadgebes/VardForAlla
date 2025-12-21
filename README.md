@@ -95,6 +95,8 @@ Key entities and relationships:
 }
 ```
 
+> **Note**: Replace `SQLEXPRESS` with your SQL Server instance name (e.g., `SQLEXPRESS04`, `MSSQLSERVER`, etc.)
+
 **Run migrations** from the solution root:
 ```bash
 cd VardForAlla.api
@@ -299,5 +301,5 @@ Developed for Swedish healthcare environments with consideration for multilingua
 
 ---
 
-**Last Updated**: December 2024  
+**Last Updated**: December 2025  
 **Version**: 1.0.0
