@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       try {
         // Verifiera token mot backend
-        const response = await api.get<UserDto>('https://localhost:7144/api/auth/me');
+        const response = await api.get<UserDto>('/auth/me');
         setUser(response.data);
         localStorage.setItem('vfa_user', JSON.stringify(response.data));
       } catch (err) {
