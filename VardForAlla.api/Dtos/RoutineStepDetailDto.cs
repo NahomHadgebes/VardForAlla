@@ -7,5 +7,6 @@ public class RoutineStepDetailDto
     public string SimpleText { get; set; } = string.Empty;
     public string OriginalText { get; set; } = string.Empty;
     public string IconKey { get; set; } = "default";
+    public string? ImageUrl { get; set; }
     public List<StepTranslationDto> Translations { get; set; } = new();
 }

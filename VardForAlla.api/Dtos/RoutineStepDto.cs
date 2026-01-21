@@ -6,4 +6,5 @@ public class RoutineStepDto
     public string SimpleText { get; set; } = string.Empty;
     public string? OriginalText { get; set; }
     public string? IconKey { get; set; }
+    public string? ImageUrl { get; set; }
 }

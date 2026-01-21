@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRoutine, useDeleteRoutine } from '../hooks/useRoutines';
 import Icon from '../components/Icon';
@@ -15,10 +15,20 @@ const RoutineDetail: React.FC = () => {
   const { data: routine, isLoading, error } = useRoutine(numericId);
   const deleteMutation = useDeleteRoutine();
   
-  // FIXAT: Översättningsfunktionalitet från backend
   const [selectedLanguage, setSelectedLanguage] = useState('sv');
+  // NYTT: State för att hålla koll på vilken bild som visas i fullskärm
+  const [activeImage, setActiveImage] = useState<string | null>(null);
 
   const isAdmin = user?.role === 'Admin';
+
+  // NYTT: Stäng lightbox med Escape-tangenten
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveImage(null);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
 
   const handleDelete = async () => {
     if (window.confirm('Är du helt säker på att du vill radera denna rutin permanent?')) {
@@ -32,13 +42,11 @@ const RoutineDetail: React.FC = () => {
     }
   };
 
-  // FIXAT: Funktion för att hämta översatt text från backend-data
   const getTranslatedText = (step: any, languageCode: string): string => {
     if (languageCode === 'sv') {
       return step.simpleText;
     }
     
-    // Matcha språkkoder från backend: en, ar, so
     const translation = step.translations?.find((t: any) => 
       t.languageCode.toLowerCase() === languageCode.toLowerCase()
     );
@@ -167,25 +175,46 @@ const RoutineDetail: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex-1 space-y-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                         <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Patientinstruktion</span>
-                         {selectedLanguage !== 'sv' && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">• Översatt</span>}
+                  <div className="flex-1 flex flex-col lg:flex-row gap-8">
+                    <div className="flex-1 space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Patientinstruktion</span>
+                           {selectedLanguage !== 'sv' && <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">• Översatt</span>}
+                        </div>
+                        <p className="text-2xl font-black text-slate-900 leading-snug tracking-tight">
+                          {getTranslatedText(step, selectedLanguage) || 
+                            <span className="text-slate-300 italic font-medium">Översättning saknas för detta steg.</span>
+                          }
+                        </p>
                       </div>
-                      <p className="text-2xl font-black text-slate-900 leading-snug tracking-tight">
-                        {getTranslatedText(step, selectedLanguage) || 
-                          <span className="text-slate-300 italic font-medium">Översättning saknas för detta steg.</span>
-                        }
-                      </p>
+                      
+                      <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Medicinsk Term:</span>
+                        <p className="text-sm font-black text-slate-700 italic bg-slate-50 inline-block px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
+                          {step.originalText || step.simpleText}
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center gap-4">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Medicinsk Term:</span>
-                      <p className="text-sm font-black text-slate-700 italic bg-slate-50 inline-block px-4 py-2 rounded-xl border border-slate-100 shadow-inner">
-                        {step.originalText || step.simpleText}
-                      </p>
-                    </div>
+
+                    {/* Uppdaterad Bild-rendering med Lightbox-stöd */}
+                    {step.imageUrl && (
+                      <div className="lg:w-1/3 flex-shrink-0">
+                        <div 
+                          className="rounded-3xl overflow-hidden border-4 border-slate-50 shadow-lg group-hover:shadow-xl transition-all duration-500 cursor-zoom-in"
+                          onClick={() => setActiveImage(step.imageUrl)}
+                        >
+                          <img 
+                            src={step.imageUrl} 
+                            alt={`Instruktionsbild för steg ${index + 1}`}
+                            className="w-full h-48 object-cover hover:scale-105 transition-transform duration-700"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -204,6 +233,39 @@ const RoutineDetail: React.FC = () => {
             </p>
         </footer>
       </div>
+
+      {/* NYTT: Lightbox Overlay - visas bara när en bild är aktiv */}
+      {activeImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300"
+          onClick={() => setActiveImage(null)}
+        >
+          {/* Stäng-knapp */}
+          <button 
+            className="absolute top-8 right-8 text-white/70 hover:text-white transition-colors p-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveImage(null);
+            }}
+          >
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Den inzoomade bilden */}
+          <img 
+            src={activeImage} 
+            className="max-w-full max-h-full rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300 border-4 border-white/10" 
+            alt="Fullskärmsvy"
+            onClick={(e) => e.stopPropagation()} // Förhindra att bilden stängs om man klickar på själva bilden
+          />
+          
+          <p className="absolute bottom-8 text-white/50 text-xs font-bold uppercase tracking-widest">
+            Klicka var som helst för att stänga
+          </p>
+        </div>
+      )}
     </div>
   );
 };

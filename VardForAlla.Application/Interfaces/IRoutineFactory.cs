@@ -10,7 +10,7 @@ namespace VardForAlla.Application.Interfaces
             string category,
             string? simpleDescription,
             string? originalDescription,
-            IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps
+            IEnumerable<(int order, string simpleText, string? originalText, string? iconKey, string? imageUrl)> steps
         );
     }
 }

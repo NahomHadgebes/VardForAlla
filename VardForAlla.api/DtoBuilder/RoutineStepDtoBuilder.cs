@@ -22,9 +22,9 @@ namespace VardForAlla.Api.DtoBuilder
                 Order = step.Order,
                 SimpleText = step.SimpleText,
                 OriginalText = step.OriginalText,
-                IconKey = step.IconKey
+                IconKey = step.IconKey,
+                ImageUrl = step.ImageUrl
             };
         }
     }
 }
-

@@ -1,6 +1,7 @@
 ﻿using VardForAlla.Domain.Entities;
 
 namespace VardForAlla.Application.Interfaces;
+
 public interface IRoutineService
 {
     Task<List<Routine>> GetAllAsync(int? userId = null, bool includeTemplates = true);
@@ -11,7 +12,7 @@ public interface IRoutineService
         string category,
         string? simpleDescription,
         string? originalDescription,
-        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps,
+        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey, string? imageUrl)> steps,
         int? userId = null,
         bool isTemplate = false);
 
@@ -26,4 +27,3 @@ public interface IRoutineService
     Task<bool> DeleteRoutineAsync(int id, int? userId = null);
     Task<bool> CanUserAccessRoutineAsync(int routineId, int userId, bool isAdmin);
 }
-

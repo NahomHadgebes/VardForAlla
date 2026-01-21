@@ -77,7 +77,7 @@ public class RoutineController : ControllerBase
     {
         // Säkerställ att steps är mappade korrekt
         var steps = createDto.Steps
-            .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey))
+            .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey, s.ImageUrl))
             .ToList();
 
         var userId = IsAdmin() ? (int?)null : GetCurrentUserId();

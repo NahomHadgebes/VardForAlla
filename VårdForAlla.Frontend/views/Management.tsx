@@ -43,7 +43,6 @@ const Management: React.FC = () => {
     name: 'steps',
   });
 
-  // FIX: Denna rad behövs för att hämta taggarna från formuläret i realtid
   const currentTags = watch('tags') || [];
 
   useEffect(() => {
@@ -65,6 +64,7 @@ const Management: React.FC = () => {
           simpleText: s.simpleText,
           originalText: s.originalText,
           iconKey: s.iconKey || 'default',
+          imageUrl: s.imageUrl || '', // NYTT: Ladda befintlig bild-URL
           translations: [
             { languageCode: 'en', translatedText: s.translations.find((t) => t.languageCode === 'en')?.translatedText || '' },
             { languageCode: 'ar', translatedText: s.translations.find((t) => t.languageCode === 'ar')?.translatedText || '' },
@@ -112,6 +112,7 @@ const Management: React.FC = () => {
           simpleText: s.simpleText.trim(),
           originalText: s.originalText.trim(),
           iconKey: s.iconKey || 'default',
+          imageUrl: s.imageUrl?.trim() || '', // NYTT: Inkludera i payload
           translations: s.translations
             .filter((t) => t.translatedText.trim() !== '')
             .map((t) => ({
@@ -168,6 +169,7 @@ const Management: React.FC = () => {
       simpleText: '',
       originalText: '',
       iconKey: 'default',
+      imageUrl: '', // NYTT: Tom sträng som standard
       translations: [
         { languageCode: 'en', translatedText: '' },
         { languageCode: 'ar', translatedText: '' },
@@ -205,6 +207,7 @@ const Management: React.FC = () => {
       </header>
 
       <form onSubmit={handleSubmit(onFormSubmit, onFormError)} className="space-y-12">
+        {/* Grundinformation Section */}
         <section className="bg-white p-10 rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-slate-100 space-y-10">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg">
@@ -297,6 +300,7 @@ const Management: React.FC = () => {
           </div>
         </section>
 
+        {/* Instruktionssteg Section */}
         <section className="space-y-8">
           <div className="flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
@@ -364,6 +368,16 @@ const Management: React.FC = () => {
                       <option value="trash">Kassering</option>
                       <option value="clean">Desinfektion</option>
                     </select>
+                  </div>
+
+                  {/* NYTT: Bild-URL fält */}
+                  <div className="space-y-4">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Bild-URL (Frivilligt)</label>
+                    <input
+                      {...register(`steps.${index}.imageUrl` as const)}
+                      placeholder="https://exempel.se/bild.jpg"
+                      className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white outline-none transition-all font-bold text-slate-600 shadow-inner"
+                    />
                   </div>
                 </div>
 
