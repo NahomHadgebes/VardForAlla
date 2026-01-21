@@ -75,10 +75,14 @@ public class RoutineController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<RoutineDetailDto>> Create([FromBody] RoutineCreateDto createDto)
     {
-        // Säkerställ att steps är mappade korrekt
-        var steps = createDto.Steps
-            .Select(s => (s.Order, s.SimpleText, s.OriginalText, s.IconKey, s.ImageUrl))
-            .ToList();
+        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey, string? imageUrl)> steps =
+            createDto.Steps.Select(s => (
+                s.Order,
+                s.SimpleText,
+                s.OriginalText,
+                s.IconKey,
+                s.ImageUrl
+            )).ToList();
 
         var userId = IsAdmin() ? (int?)null : GetCurrentUserId();
         var isTemplate = IsAdmin() && (createDto.IsTemplate ?? false);
@@ -87,7 +91,7 @@ public class RoutineController : ControllerBase
             createDto.Title,
             createDto.Category,
             createDto.Description,
-            null, // OriginalDescription - används ej i frontend
+            null,
             steps,
             userId,
             isTemplate);

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
 public class RoutineStepCreateDto
 {
     [Required]
@@ -9,9 +8,8 @@ public class RoutineStepCreateDto
     [MaxLength(500)]
     public string SimpleText { get; set; } = string.Empty;
 
-    [Required]
     [MaxLength(500)]
-    public string OriginalText { get; set; } = string.Empty;
+    public string? OriginalText { get; set; }
 
     public string? IconKey { get; set; }
 
