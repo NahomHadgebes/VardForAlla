@@ -1,6 +1,7 @@
 ﻿using VardForAlla.Domain.Entities;
 
 namespace VardForAlla.Domain.Builders;
+
 public class RoutineBuilder
 {
     private readonly Routine _routine;
@@ -34,14 +35,15 @@ public class RoutineBuilder
         return this;
     }
 
-    public RoutineBuilder AddStep(int order, string simpleText, string? originalText = null, string? iconKey = null)
+    public RoutineBuilder AddStep(int order, string simpleText, string? originalText = null, string? iconKey = null, string? imageUrl = null)
     {
         _routine.Steps.Add(new RoutineStep
         {
             Order = order,
             SimpleText = simpleText,
             OriginalText = originalText,
-            IconKey = iconKey
+            IconKey = iconKey,
+            ImageUrl = imageUrl 
         });
 
         return this;
@@ -49,8 +51,6 @@ public class RoutineBuilder
 
     public Routine Build()
     {
-        // Här kan man lägga validering om man vill (t.ex. att Title inte är tomt)
         return _routine;
     }
 }
-

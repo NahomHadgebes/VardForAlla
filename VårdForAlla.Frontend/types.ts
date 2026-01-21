@@ -1,4 +1,3 @@
-
 /**
  * Authentication DTOs
  */
@@ -47,6 +46,7 @@ export interface RoutineStepDto {
   simpleText: string;
   originalText: string;
   iconKey: string;
+  imageUrl?: string; // NYTT: Lagt till för att visa bilder
   translations: StepTranslationDto[];
 }
 
@@ -55,6 +55,7 @@ export interface RoutineStepCreateDto {
   simpleText: string;
   originalText: string;
   iconKey: string;
+  imageUrl?: string; // NYTT: Lagt till för att kunna spara bild-URL
   translations: StepTranslationCreateDto[];
 }
 
@@ -64,7 +65,7 @@ export interface RoutineDto {
   description?: string;
   category: string;
   tags?: string[];
-  steps: RoutineStepDto[];
+  steps: RoutineStepDto[]; // Använder nu RoutineStepDto med imageUrl
   isTemplate?: boolean;
   createdAt: string;
   updatedAt: string;

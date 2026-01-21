@@ -28,7 +28,7 @@ public class RoutineDtoBuilder
             Description = routine.SimpleDescription,
             IsActive = routine.IsActive,
             IsTemplate = routine.IsTemplate,
-            StepCount = routine.Steps?.Count ?? 0,  // KRITISKT: Räkna steps
+            StepCount = routine.Steps?.Count ?? 0,
             Tags = routine.Tags?.Select(t => t.Name).ToList() ?? new List<string>(),
             UpdatedAt = DateTime.UtcNow
         };
@@ -56,6 +56,7 @@ public class RoutineDtoBuilder
                     SimpleText = s.SimpleText,
                     OriginalText = s.OriginalText ?? "",
                     IconKey = s.IconKey ?? "default",
+                    ImageUrl = s.ImageUrl,
                     Translations = (s.Translations ?? new List<StepTranslation>())
                         .Select(t => new StepTranslationDto
                         {

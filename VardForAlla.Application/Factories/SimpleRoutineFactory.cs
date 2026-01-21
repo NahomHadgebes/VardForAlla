@@ -10,7 +10,7 @@ namespace VardForAlla.Application.Factories
             string category,
             string? simpleDescription,
             string? originalDescription,
-            IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps)
+            IEnumerable<(int order, string simpleText, string? originalText, string? iconKey, string? imageUrl)> steps)
         {
             return new Routine
             {
@@ -24,7 +24,8 @@ namespace VardForAlla.Application.Factories
                     Order = s.order,
                     SimpleText = s.simpleText,
                     OriginalText = s.originalText,
-                    IconKey = s.iconKey
+                    IconKey = s.iconKey,
+                    ImageUrl = s.imageUrl
                 }).ToList()
             };
         }

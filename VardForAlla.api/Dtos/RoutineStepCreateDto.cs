@@ -15,5 +15,7 @@ public class RoutineStepCreateDto
 
     public string? IconKey { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public List<StepTranslationCreateDto> Translations { get; set; } = new();
 }

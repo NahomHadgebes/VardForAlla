@@ -62,7 +62,8 @@ public class RoutineService : IRoutineService
         string category,
         string? simpleDescription,
         string? originalDescription,
-        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey)> steps,
+        // UPPDATERAD: lade till string? imageUrl i tupeln
+        IEnumerable<(int order, string simpleText, string? originalText, string? iconKey, string? imageUrl)> steps,
         int? userId = null,
         bool isTemplate = false)
     {
@@ -77,6 +78,7 @@ public class RoutineService : IRoutineService
         if (!steps.Any())
             throw new ArgumentException("Minst ett steg krävs.", nameof(steps));
 
+        // Skickar vidare de uppdaterade stegen till fabriken
         var routine = _routineFactory.CreateRoutine(
             title,
             category,
@@ -164,4 +166,3 @@ public class RoutineService : IRoutineService
         return routine.UserId == userId || routine.IsTemplate;
     }
 }
-
